@@ -1,0 +1,8 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "PlayStation 2 emulator" },
+    { "name": "EntryAbility_desc", "value": "ARMSX2" },
+    { "name": "EntryAbility_label", "value": "ARMSX2" },
+    { "name": "jit_reason", "value": "Runs the PS2 CPU recompilers (JIT), without which games are far too slow to play." }
+  ]
+}

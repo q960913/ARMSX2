@@ -19,7 +19,8 @@
 	spill. C linkage would carry the attribute past the mangler, at the price of
 	one flat scope for both namespaces, where EeFpuModel::RecipSqrt and
 	VuEfuModel::RecipSqrt share a name.  */
-#if defined(__has_attribute) && __has_attribute(preserve_all) && !defined(_MSC_VER)
+#if defined(__has_attribute) && __has_attribute(preserve_all) && !defined(_MSC_VER) && \
+	!defined(ARMSX2_NO_AARCH64_PRESERVE_CC)
 #define EEFPU_MODEL_CALL __attribute__((preserve_all))
 #define EEFPU_MODEL_CALL_SPARES_MOST 1
 #else

@@ -916,8 +916,12 @@ __ri void ImGuiManager::DrawPerformanceOverlay(float& position_y, float scale, f
 				return std::pair(lo, hi);
 			};
 
-			auto [initial_lo, initial_hi] = compute_window_extents(history);
-			auto [min_val, max_val] = [&]() {
+			// Plain variables, not structured bindings: lambdas below capture these, and capturing a
+			// structured binding needs clang 16 (HarmonyOS's NDK ships clang 15).
+			const std::pair<float, float> initial_extents = compute_window_extents(history);
+			const float initial_lo = initial_extents.first;
+			const float initial_hi = initial_extents.second;
+			const std::pair<float, float> ft_range = [&]() {
 				float lo = initial_lo;
 				float hi = initial_hi;
 				if (hi < lo)
@@ -931,6 +935,8 @@ __ri void ImGuiManager::DrawPerformanceOverlay(float& position_y, float scale, f
 				}
 				return std::pair(lo, std::max(hi, lo + 1.0f));
 			}();
+			float min_val = ft_range.first;
+			float max_val = ft_range.second;
 
 			PerformanceMetrics::FrameTimeHistory ft_history = history;
 
@@ -963,7 +969,9 @@ __ri void ImGuiManager::DrawPerformanceOverlay(float& position_y, float scale, f
 			for (u32 i = 0; i < sample_count; i++)
 				vps_history[i] = (ft_history[i] >= 0.01f) ? std::min(10000.0f, 1000.0f / ft_history[i]) : 0.0f;
 
-			auto [vps_initial_lo, vps_initial_hi] = compute_window_extents(vps_history);
+			const std::pair<float, float> vps_initial_extents = compute_window_extents(vps_history);
+			const float vps_initial_lo = vps_initial_extents.first;
+			const float vps_initial_hi = vps_initial_extents.second;
 			auto [vps_scale_min, vps_scale_max] = [&]() {
 				float lo = vps_initial_lo;
 				float hi = vps_initial_hi;

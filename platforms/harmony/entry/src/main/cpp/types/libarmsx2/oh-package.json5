@@ -1,0 +1,6 @@
+{
+  "name": "libarmsx2.so",
+  "types": "./index.d.ts",
+  "version": "0.1.0",
+  "description": "ARMSX2 native core (NAPI)"
+}

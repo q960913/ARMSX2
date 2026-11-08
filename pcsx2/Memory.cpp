@@ -206,9 +206,19 @@ bool SysMemory::AllocateMemoryMap()
 
 		if ((s_code_memory = s_code_mapping_area->Map(nullptr, 0, s_code_mapping_area->BasePointer(), HostMemoryMap::CodeSize, PageAccess_Any())) == nullptr)
 		{
+#ifdef __OHOS__
+			// HarmonyOS only grants writable+executable anonymous memory to apps holding
+			// ohos.permission.kernel.ALLOW_WRITABLE_CODE_MEMORY (and never in Kingshield
+			// mode). Without it, run on the interpreters instead of refusing to boot:
+			// VMManager takes the !HasCodeMemory() path for every CPU provider.
+			Console.Warning("Executable memory was refused (no JIT permission); continuing with the interpreters.");
+			s_code_mapping_area.reset();
+			s_code_memory = nullptr;
+#else
 			Host::ReportErrorAsync("Error", "Failed to allocate code memory.");
 			ReleaseMemoryMap();
 			return false;
+#endif
 		}
 	}
 #endif
@@ -224,10 +234,13 @@ bool SysMemory::AllocateMemoryMap()
 	// survives execve, so no in-tree gate is needed.
 	static_assert(HostMemoryMap::IOPrecOffset == HostMemoryMap::EErecOffset + HostMemoryMap::EErecSize);
 	static_assert(HostMemoryMap::mVU1recOffset == HostMemoryMap::mVU0recOffset + HostMemoryMap::mVU0recSize);
-	madvise(s_code_memory + HostMemoryMap::EErecOffset,
-		HostMemoryMap::EErecSize + HostMemoryMap::IOPrecSize, MADV_HUGEPAGE);
-	madvise(s_code_memory + HostMemoryMap::mVU0recOffset,
-		HostMemoryMap::mVU0recSize + HostMemoryMap::mVU1recSize, MADV_HUGEPAGE);
+	if (s_code_memory)
+	{
+		madvise(s_code_memory + HostMemoryMap::EErecOffset,
+			HostMemoryMap::EErecSize + HostMemoryMap::IOPrecSize, MADV_HUGEPAGE);
+		madvise(s_code_memory + HostMemoryMap::mVU0recOffset,
+			HostMemoryMap::mVU0recSize + HostMemoryMap::mVU1recSize, MADV_HUGEPAGE);
+	}
 #endif
 
 	HostMemoryMap::EEmem = (uptr)(s_data_memory + HostMemoryMap::EEmemOffset);

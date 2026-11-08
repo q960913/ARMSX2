@@ -168,6 +168,10 @@ private:
 	static std::unique_ptr<AudioStream> CreateOboeAudioStream(u32 sample_rate, const AudioStreamParameters& parameters,
 		bool stretch_enabled, Error* error);
 
+	// HarmonyOS / OpenHarmony backend (OH_AudioRenderer). Defined in Host/OHAudioStream.cpp.
+	static std::unique_ptr<AudioStream> CreateOHAudioStream(u32 sample_rate, const AudioStreamParameters& parameters,
+		bool stretch_enabled, Error* error);
+
 	void AllocateBuffer();
 	void DestroyBuffer();
 

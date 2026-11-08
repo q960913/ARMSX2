@@ -7,9 +7,35 @@
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
+
+namespace HeapArrayDetail
+{
+	// std::lexicographical_compare_three_way arrived in libc++ 17. The HarmonyOS NDK
+	// ships libc++ 15, so spell it out there.
+	template <typename It1, typename It2>
+	constexpr auto LexicographicalCompareThreeWay(It1 first1, It1 last1, It2 first2, It2 last2)
+	{
+#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 170000
+		using Result = decltype(*first1 <=> *first2);
+		for (; first1 != last1 && first2 != last2; ++first1, ++first2)
+		{
+			if (const Result c = *first1 <=> *first2; c != 0)
+				return c;
+		}
+		if (first1 != last1)
+			return Result(std::strong_ordering::greater);
+		if (first2 != last2)
+			return Result(std::strong_ordering::less);
+		return Result(std::strong_ordering::equal);
+#else
+		return HeapArrayDetail::LexicographicalCompareThreeWay(first1, last1, first2, last2);
+#endif
+	}
+} // namespace HeapArrayDetail
 
 template <typename T, std::size_t SIZE, std::size_t ALIGNMENT = 0>
 class FixedHeapArray
@@ -94,7 +120,7 @@ public:
 
 	auto operator<=>(const this_type& rhs) const
 	{
-		return std::lexicographical_compare_three_way(m_data, m_data + SIZE, rhs.m_data, rhs.m_data + SIZE);
+		return HeapArrayDetail::LexicographicalCompareThreeWay(m_data, m_data + SIZE, rhs.m_data, rhs.m_data + SIZE);
 	}
 
 private:
@@ -335,7 +361,7 @@ public:
 
 	auto operator<=>(const this_type& rhs) const
 	{
-		return std::lexicographical_compare_three_way(
+		return HeapArrayDetail::LexicographicalCompareThreeWay(
 			m_data, m_data + m_size,
 			rhs.m_data, rhs.m_data + rhs.m_size);
 	}

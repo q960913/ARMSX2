@@ -315,6 +315,10 @@ bool GSDeviceVK::SelectInstanceExtensions(ExtensionList* extension_list, const W
 	if (wi.type == WindowInfo::Type::Android && !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
 		return false;
 #endif
+#if defined(VK_USE_PLATFORM_OHOS)
+	if (wi.type == WindowInfo::Type::OHOS && !SupportsExtension(VK_OHOS_SURFACE_EXTENSION_NAME, true))
+		return false;
+#endif
 
 	// VK_KHR_display direct-to-monitor surface (kmsdrm handhelds).
 	// VK_KHR_get_display_properties2 is optional but lets us read HDR / extended
@@ -1797,6 +1801,7 @@ std::vector<std::string> GSDeviceVK::GetExtendedStats() const
 			case WindowInfo::Type::Wayland:     wsi_name = "Wayland"; break;
 			case WindowInfo::Type::MacOS:       wsi_name = "MacOS"; break;
 			case WindowInfo::Type::VulkanDirect: wsi_name = "VulkanDirect"; break;
+			case WindowInfo::Type::OHOS:         wsi_name = "OHOS"; break;
 		}
 		const char* present_name = "?";
 		switch (m_swap_chain->GetPresentMode())

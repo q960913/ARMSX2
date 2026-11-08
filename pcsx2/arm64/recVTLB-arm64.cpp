@@ -107,10 +107,10 @@ static void vtlbSoftmemRead(int addr_wreg, u32 bits, bool sign)
 	armFlushEEPinsBeforePreserveMostCall(); // lazy-dirty seam twin — emits nothing today
 	switch (bits)
 	{
-		case 8:  armEmitCall((void*)vtlb_memRead<mem8_t>);  break;
-		case 16: armEmitCall((void*)vtlb_memRead<mem16_t>); break;
-		case 32: armEmitCall((void*)vtlb_memRead<mem32_t>); break;
-		case 64: armEmitCall((void*)vtlb_memRead<mem64_t>); break;
+		case 8:  armEmitCall(vtlb_JitMemRead(8));  break;
+		case 16: armEmitCall(vtlb_JitMemRead(16)); break;
+		case 32: armEmitCall(vtlb_JitMemRead(32)); break;
+		case 64: armEmitCall(vtlb_JitMemRead(64)); break;
 	}
 	armReloadCycleDelta();
 	// vtlb_memRead is preserve_most: the spared x9-x15 range covers every
@@ -181,10 +181,10 @@ static void vtlbSoftmemWrite(int addr_wreg, int value_reg, u32 bits)
 	armFlushEEPinsBeforePreserveMostCall(); // lazy-dirty seam twin — emits nothing today
 	switch (bits)
 	{
-		case 8:  armEmitCall((void*)vtlb_memWrite<mem8_t>);  break;
-		case 16: armEmitCall((void*)vtlb_memWrite<mem16_t>); break;
-		case 32: armEmitCall((void*)vtlb_memWrite<mem32_t>); break;
-		case 64: armEmitCall((void*)vtlb_memWrite<mem64_t>); break;
+		case 8:  armEmitCall(vtlb_JitMemWrite(8));  break;
+		case 16: armEmitCall(vtlb_JitMemWrite(16)); break;
+		case 32: armEmitCall(vtlb_JitMemWrite(32)); break;
+		case 64: armEmitCall(vtlb_JitMemWrite(64)); break;
 	}
 	armReloadCycleDelta();
 	// preserve_most seam — emits nothing; see vtlbSoftmemRead.
@@ -910,7 +910,7 @@ static void vtlbSoftmemRead128(int addr_wreg)
 	// See vtlbSoftmemRead for the RECCYCLE coherence rationale.
 	armFlushCycleDelta();
 	armFlushEEPinsBeforePreserveMostCall(); // lazy-dirty seam twin — emits nothing today
-	armEmitCall((void*)vtlb_memRead128);
+	armEmitCall(vtlb_JitMemRead(128));
 	armReloadCycleDelta();
 	// preserve_most seam — emits nothing; see vtlbSoftmemRead (q0 untouched).
 	armReloadEEPinsAfterPreserveMostCall();
@@ -945,7 +945,7 @@ static void vtlbSoftmemWrite128(int addr_wreg)
 	// See vtlbSoftmemRead for the RECCYCLE coherence rationale.
 	armFlushCycleDelta();
 	armFlushEEPinsBeforePreserveMostCall(); // lazy-dirty seam twin — emits nothing today
-	armEmitCall((void*)vtlb_memWrite128);
+	armEmitCall(vtlb_JitMemWrite(128));
 	armReloadCycleDelta();
 	// preserve_most seam — emits nothing; see vtlbSoftmemRead.
 	armReloadEEPinsAfterPreserveMostCall();

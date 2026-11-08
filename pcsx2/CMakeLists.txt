@@ -407,7 +407,7 @@ set(pcsx2DEV9Sources
 # LTO release builds surface even though a debug build's --gc-sections hides it).
 # iOS also skips find_package(PCAP) in SearchForStuff.cmake, so PCAP::PCAP doesn't
 # even exist to link against there.
-if(NOT ANDROID AND NOT IOS)
+if(NOT ANDROID AND NOT IOS AND NOT OHOS)
 	list(APPEND pcsx2DEV9Sources DEV9/pcap_io.cpp)
 endif()
 
@@ -1243,7 +1243,7 @@ set(pcsx2CatalogHeaders
 target_link_libraries(PCSX2_FLAGS INTERFACE rapidjson)
 if(WIN32)
 	list(APPEND pcsx2CatalogSources Catalog/HttpTransportWinHTTP.cpp)
-elseif(ANDROID OR IOS)
+elseif(ANDROID OR IOS OR OHOS)
 	list(APPEND pcsx2CatalogSources Catalog/HttpTransportNone.cpp)
 else()
 	list(APPEND pcsx2CatalogSources Catalog/HttpTransportCurl.cpp)
@@ -1441,6 +1441,7 @@ set(pcsx2arm64Sources
 	arm64/iR5900Jump-arm64.cpp
 	arm64/iR5900LoadStore-arm64.cpp
 	arm64/recVTLB-arm64.cpp
+	arm64/vtlbThunks-arm64.cpp
 	arm64/iR5900Move-arm64.cpp
 	arm64/iR5900MultDiv-arm64.cpp
 	arm64/iR5900Shift-arm64.cpp
@@ -1518,7 +1519,7 @@ endif()
 # self-gated by the same arm64 macro and compiles to nothing on x86. ANDROID /
 # ARMSX2_IOS are kept as belt-and-suspenders so the mobile targets that already
 # built this file keep doing so regardless of how they set ARCH_ARM64.
-if(ARCH_ARM64 OR ANDROID OR ARMSX2_IOS)
+if(ARCH_ARM64 OR ANDROID OR OHOS OR ARMSX2_IOS)
 	list(APPEND pcsx2SPU2Sources
 		SPU2/spu2_neon.cpp)
 	list(APPEND pcsx2SPU2Headers
@@ -1573,6 +1574,18 @@ if(ANDROID)
 			oboe)
 		target_compile_definitions(PCSX2_FLAGS INTERFACE ARMSX2_USE_OBOE)
 	endif()
+endif()
+
+# HarmonyOS: no optical drive and no libpcap. The Android stubs are platform
+# agnostic for both (disc reader names, PCAPAdapter).
+if(OHOS)
+	list(APPEND pcsx2Sources
+		Android/AndroidStubs.cpp
+		Android/AndroidPcapStubs.cpp)
+	# OHAudio output (AudioBackend::OHAudio), the platform's native audio API.
+	list(APPEND pcsx2HostSources
+		Host/OHAudioStream.cpp)
+	target_link_libraries(PCSX2_FLAGS INTERFACE ohaudio)
 endif()
 
 if(ARMSX2_IOS)
@@ -1908,8 +1921,8 @@ if(WIN32)
 		dwmapi.lib
 		OneCore.lib
 	)
-elseif(NOT ANDROID AND NOT IOS)
-	# Android and iOS have no system libpcap; DEV9 uses Android/AndroidPcapStubs.cpp
+elseif(NOT ANDROID AND NOT IOS AND NOT OHOS)
+	# Android, iOS and HarmonyOS have no system libpcap; DEV9 uses Android/AndroidPcapStubs.cpp
 	# instead, so they must NOT link PCAP::PCAP. iOS additionally skips
 	# find_package(PCAP) (SearchForStuff.cmake), so the PCAP::PCAP target doesn't
 	# exist and linking it fails at configure time (a bare else() here caught both

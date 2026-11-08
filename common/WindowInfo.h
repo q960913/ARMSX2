@@ -18,6 +18,9 @@ struct WindowInfo
 		MacOS,
 		Android,
 
+		// HarmonyOS / OpenHarmony XComponent surface. window_handle is the OHNativeWindow*.
+		OHOS,
+
 		// Vulkan VK_KHR_display direct-to-monitor (no compositor / no GBM
 		// intermediate). Frontend supplies no native window handle; the
 		// renderer enumerates displays itself. surface_width/surface_height

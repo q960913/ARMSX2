@@ -203,9 +203,14 @@ size_t HostSys::GetRuntimeCacheLineSize()
 
 	return static_cast<size_t>(max_line_size);
 #else
+#if defined(_SC_LEVEL1_DCACHE_LINESIZE) && defined(_SC_LEVEL1_ICACHE_LINESIZE)
 	int l1i = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
 	int l1d = sysconf(_SC_LEVEL1_ICACHE_LINESIZE);
 	int res = (l1i > l1d) ? l1i : l1d;
+#else
+	// musl (HarmonyOS) has no _SC_LEVEL1_* names; the sysfs walk below is the answer there.
+	int res = 0;
+#endif
 	for (int index = 0; index < 16; index++)
 	{
 		char buf[128];

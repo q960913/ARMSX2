@@ -32,6 +32,10 @@ class Error;
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 
+#if defined(__OHOS__)
+#define VK_USE_PLATFORM_OHOS
+#endif
+
 #include "vulkan/vulkan.h"
 
 #if defined(X11_API)

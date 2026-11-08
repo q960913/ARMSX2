@@ -82,6 +82,14 @@ static constexpr unsigned int __pagealignsize = 0x1000;
 #define __vectorcall
 #endif
 
+// LLVM's AArch64 backend only lowers the preserve_most / preserve_all calling
+// conventions from LLVM 18. Older clang (the HarmonyOS NDK ships 15) accepts the
+// attributes, answers __has_attribute for them, and then aborts in codegen with
+// "Unsupported calling convention". Code that wants them checks this first.
+#if defined(__aarch64__) && defined(__clang__) && !defined(__apple_build_version__) && __clang_major__ < 18
+#define ARMSX2_NO_AARCH64_PRESERVE_CC 1
+#endif
+
 // Inlining note: GCC needs ((unused)) attributes defined on inlined functions to suppress
 // warnings when a static inlined function isn't used in the scope of a single file (which
 // happens *by design* like all the friggen time >_<)

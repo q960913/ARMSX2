@@ -1,0 +1,14 @@
+# DevEco Studio / hvigor output
+/.hvigor
+/.idea
+/build
+/entry/build
+/entry/.cxx
+/entry/.preview
+/oh_modules
+/entry/oh_modules
+/local.properties
+/oh-package-lock.json5
+/entry/oh-package-lock.json5
+# Generated at build time from bin/resources by entry/hvigorfile.ts
+/entry/src/main/resources/rawfile/resources

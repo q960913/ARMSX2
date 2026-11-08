@@ -181,6 +181,24 @@ VkSurfaceKHR VKSwapChain::CreateVulkanSurface(VkInstance instance, VkPhysicalDev
 	}
 #endif
 
+#if defined(VK_USE_PLATFORM_OHOS)
+	if (wi->type == WindowInfo::Type::OHOS)
+	{
+		VkSurfaceCreateInfoOHOS surface_create_info = {VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS, nullptr, 0,
+			static_cast<OHNativeWindow*>(wi->window_handle)};
+
+		VkSurfaceKHR surface;
+		VkResult res = vkCreateSurfaceOHOS(instance, &surface_create_info, nullptr, &surface);
+		if (res != VK_SUCCESS)
+		{
+			LOG_VULKAN_ERROR(res, "vkCreateSurfaceOHOS failed: ");
+			return VK_NULL_HANDLE;
+		}
+
+		return surface;
+	}
+#endif
+
 	// VK_KHR_display direct-to-monitor (kmsdrm handhelds). No compositor,
 	// no GBM, no native window handle from the frontend — the renderer
 	// enumerates displays itself.
@@ -824,6 +842,7 @@ bool VKSwapChain::CreateSwapChain()
 			case WindowInfo::Type::MacOS:       wsi_name = "MacOS"; break;
 			case WindowInfo::Type::VulkanDirect: wsi_name = "VulkanDirect"; break;
 			case WindowInfo::Type::Android:      wsi_name = "Android"; break;
+			case WindowInfo::Type::OHOS:         wsi_name = "OHOS"; break;
 		}
 		Console.WriteLnFmt(
 			"Vulkan: Swapchain {}x{} fmt={} colorspace={} present={} images={} (desired={} min={} max={}) wsi={} "

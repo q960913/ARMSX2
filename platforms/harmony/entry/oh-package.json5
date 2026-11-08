@@ -1,0 +1,11 @@
+{
+  "name": "entry",
+  "version": "0.1.0",
+  "description": "ARMSX2 for HarmonyOS",
+  "main": "",
+  "author": "",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "libarmsx2.so": "file:./src/main/cpp/types/libarmsx2"
+  }
+}

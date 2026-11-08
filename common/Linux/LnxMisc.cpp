@@ -13,7 +13,12 @@
 
 #include "fmt/format.h"
 
-#if !defined(__ANDROID__)
+// Android and HarmonyOS have no D-Bus session bus or X11 screensaver to talk to.
+#if defined(__ANDROID__) || defined(__OHOS__)
+#define LNX_MISC_MOBILE 1
+#endif
+
+#if !defined(LNX_MISC_MOBILE)
 #include <dbus/dbus.h>
 #endif
 #include <spawn.h>
@@ -213,7 +218,7 @@ std::string GetOSVersionString()
 #endif
 }
 
-#if !defined(__ANDROID__)
+#if !defined(LNX_MISC_MOBILE)
 static bool SetScreensaverInhibitDBus(const bool inhibit_requested, const char* program_name, const char* reason)
 {
 	static dbus_uint32_t s_cookie;
@@ -405,9 +410,9 @@ void Common::DetachMousePositionCb()
 }
 #endif // X11_API
 
-#else // __ANDROID__
+#else // LNX_MISC_MOBILE
 
-// Android has no X11 or D-Bus screensaver/session service; these are no-ops.
+// Android and HarmonyOS have no X11 or D-Bus screensaver/session service; these are no-ops.
 bool Common::InhibitScreensaver(bool inhibit)
 {
 	return false;
@@ -426,11 +431,12 @@ void Common::DetachMousePositionCb()
 {
 }
 
-#endif // !__ANDROID__
+#endif // !LNX_MISC_MOBILE
 
 // Desktop-Linux only: the aplay/gstreamer approach uses posix_spawnp (bionic API 30+)
-// and external audio tools. Android provides its own Common::PlaySoundAsync (native-lib).
-#ifndef __ANDROID__
+// and external audio tools. Android (native-lib) and HarmonyOS (platforms/harmony) provide
+// their own Common::PlaySoundAsync.
+#ifndef LNX_MISC_MOBILE
 bool Common::PlaySoundAsync(const char* path)
 {
 #ifdef __linux__
@@ -467,7 +473,7 @@ bool Common::PlaySoundAsync(const char* path)
 	return false;
 #endif
 }
-#endif // !__ANDROID__ (PlaySoundAsync — Android impl lives in native-lib.cpp)
+#endif // !LNX_MISC_MOBILE (PlaySoundAsync: Android and HarmonyOS have their own)
 
 void Threading::Sleep(int ms)
 {

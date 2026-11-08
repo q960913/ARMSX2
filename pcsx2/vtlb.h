@@ -104,7 +104,13 @@ extern bool vtlb_IsFaultingPC(u32 guest_pc);
 // direct-RAM fast path. Return/argument registers are unaffected, so
 // C++ callers (interpreter memory ops) behave identically.
 #ifdef ARCH_ARM64
-#if defined(__has_attribute) && __has_attribute(preserve_most)
+#if defined(ARMSX2_NO_AARCH64_PRESERVE_CC)
+// The compiler cannot build preserve_most (see Pcsx2Defs.h). The dispatchers are
+// plain AAPCS, and the recompilers call them through small assembly thunks that
+// keep the same contract, saving x9-x15 around the call (arm64/vtlbThunks-arm64.cpp).
+#define VTLB_PRESERVE_MOST
+#define VTLB_PRESERVE_MOST_VIA_THUNKS 1
+#elif defined(__has_attribute) && __has_attribute(preserve_most)
 #define VTLB_PRESERVE_MOST __attribute__((preserve_most))
 #else
 // Hard requirement, not an optimization: the arm64 recompiler emits calls to
@@ -128,6 +134,14 @@ extern RETURNS_R128 VTLB_PRESERVE_MOST vtlb_memRead128(u32 mem);
 template< typename DataType >
 extern void VTLB_PRESERVE_MOST vtlb_memWrite(u32 mem, DataType value);
 extern void TAKES_R128 VTLB_PRESERVE_MOST vtlb_memWrite128(u32 mem, r128 value);
+
+#ifdef ARCH_ARM64
+// What the arm64 recompilers call for a vtlb_memRead/Write of `bits` (8..128): an
+// address that honours the preserve_most contract (x9-x15 spared). That is the
+// dispatcher itself, or its thunk where the compiler cannot build the convention.
+const void* vtlb_JitMemRead(u32 bits);
+const void* vtlb_JitMemWrite(u32 bits);
+#endif
 
 // "Safe" variants of vtlb, designed for external tools.
 // These routines only access the various RAM, and will not call handlers

@@ -1241,6 +1241,8 @@ struct Pcsx2Config
 		static constexpr s32 MAX_VOLUME = 200;
 #ifdef ARMSX2_USE_OBOE
 		static constexpr AudioBackend DEFAULT_BACKEND = AudioBackend::Oboe;
+#elif defined(__OHOS__)
+		static constexpr AudioBackend DEFAULT_BACKEND = AudioBackend::OHAudio;
 #else
 		static constexpr AudioBackend DEFAULT_BACKEND = AudioBackend::Cubeb;
 #endif

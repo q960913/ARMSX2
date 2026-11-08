@@ -20,6 +20,7 @@
 #include "harness/RecompilerTestEnvironment.h"
 
 #include "common/Pcsx2Defs.h"
+#include "EeFpuModel.h"
 
 #include "vixl/aarch64/decoder-aarch64.h"
 #include "vixl/aarch64/disasm-aarch64.h"
@@ -187,9 +188,13 @@ void CheckStub(const char* who, const u8* stub, int vecEnd)
 			break;
 	}
 	ASSERT_LT(i, 128) << who << ": no Ret in the scan window";
-	EXPECT_EQ(qStores, ((vecEnd + 1) & ~1) / 2) << who << ": vector half does not match the declaration";
+	// Without the attribute (EeFpuModel.h) the callee is plain AAPCS and the stub saves the
+	// whole caller-saved set instead: all 32 q registers, and x2-x15 plus x30.
+	const int expectedQPairs = EEFPU_MODEL_CALL_SPARES_MOST ? ((vecEnd + 1) & ~1) / 2 : 16;
+	const int expectedXPairs = EEFPU_MODEL_CALL_SPARES_MOST ? 4 : 8;
+	EXPECT_EQ(qStores, expectedQPairs) << who << ": vector half does not match the declaration";
 	EXPECT_EQ(qLoads, qStores) << who << ": vector half is not restored";
-	EXPECT_EQ(xStores, 4) << who << ": x2-x8 plus x30 is four pairs";
+	EXPECT_EQ(xStores, expectedXPairs) << who << ": x2-x8 (x2-x15 without the attribute) plus x30";
 	EXPECT_EQ(xLoads, xStores) << who << ": gpr half is not restored";
 }
 

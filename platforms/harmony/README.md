@@ -11,7 +11,7 @@
 | 部分 | 状态 |
 |---|---|
 | 核心 + 宿主层用鸿蒙 SDK（API 18，clang 15）编译、链接 | ✅ 已在 Linux 上实际编译通过 |
-| ARM64 JIT 跳板（见下文"技术说明"） | ✅ 用 qemu 跑过单元测试 |
+| ARM64 JIT（鸿蒙编译器编译） | ✅ 在 qemu 里跑了 JIT 差分测试：2426 个通过；剩余失败均为测试环境原因（见下文） |
 | Vulkan 画面（`VK_OHOS_surface`）、OHAudio 声音、触屏、虚拟手柄 | ⚠️ 代码完成，**尚未在真机上运行过** |
 | ArkTS 界面 | ⚠️ 通过了 SDK 自带的 ArkTS 类型检查和 Linter，但还没用 DevEco 完整打包过 |
 | OpenGL 渲染器、联网功能（成就、封面下载）、实体手柄摇杆、USB 设备 | ❌ 暂未支持 |
@@ -92,6 +92,11 @@ OpenHarmony 的公开 SDK（例如 [5.1.0 Release](https://repo.huaweicloud.com/
   由跳板负责保存和恢复 x9–x15，对 JIT 生成的代码来说约定不变。EE FPU 模型调用则走它已有的"多保存寄存器"分支。
 - **libc++ 15**：通过编译参数打开 `std::ranges`（`_LIBCPP_ENABLE_EXPERIMENTAL`），并由 `ohos_libcxx_compat.h` 补上 `make_unique_for_overwrite`。
 - **平台适配**：Vulkan 窗口 `WindowInfo::Type::OHOS`、音频后端 `AudioBackend::OHAudio`、CMake 中的 `OHOS` 分支（无 libcurl、libpcap、D-Bus）。
+
+**JIT 测试（不需要真机）**：仓库的 JIT 差分测试（同一段 PS2 代码分别用 JIT 和解释器跑，比较结果）可以用鸿蒙工具链静态编译，
+再用 `qemu-aarch64-static` 在 x86 Linux 上运行。需要打开 `-DENABLE_RECOMPILER_TEST_HOOKS=ON`，并且不链接 OHAudio
+（`-DARMSX2_USE_OHAUDIO=OFF`）。剩下的失败：两个测试要启动子进程，在 qemu 里做不到；
+`EeRecUnalignedStore.SoftmemFormKeepsTheAlignmentBranch` 只在和其他测试同批运行时失败，单独运行能通过。
 
 主要文件：
 

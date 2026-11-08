@@ -15,7 +15,8 @@
 #include <memory>
 #include <type_traits>
 
-#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 160000
+// C++20 only: some third-party code in the build is compiled as C++17.
+#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 160000 && __cplusplus >= 202002L
 namespace std
 {
 	// libc++ 16.

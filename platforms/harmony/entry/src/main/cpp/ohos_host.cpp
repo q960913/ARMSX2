@@ -78,6 +78,7 @@ namespace
 	// reference in AcquireRenderWindow so a surface the UI drops stays valid until
 	// the GS thread has moved off it.
 	std::mutex s_window_lock;
+	std::condition_variable s_window_cv;
 	OHNativeWindow* s_window = nullptr;
 	OHNativeWindow* s_acquired_window = nullptr;
 	u32 s_window_width = 0;
@@ -173,6 +174,9 @@ static bool InitializeConfig(const std::string& files_dir, std::string* error)
 		si.SetBoolValue("InputSources", "SDL", false);
 		si.SetBoolValue("InputSources", "XInput", false);
 		si.SetBoolValue("EmuCore/GS", "FullscreenMode", true);
+		// The "system console" is stdout, which ohos_main.cpp pipes into hilog: the
+		// only log a developer can read without pulling files off the device.
+		si.SetBoolValue("Logging", "EnableSystemConsole", true);
 
 		// First-run defaults that suit a phone/tablet; left alone once the user changes them.
 		if (!si.ContainsValue("EmuCore", "EnableFastBoot"))
@@ -213,6 +217,18 @@ static void CPUThreadMain()
 
 	VMManager::ApplySettings();
 	VMManager::ReloadInputBindings(true);
+
+	// The renderer picks its Vulkan instance extensions from the first window it is
+	// given, and a Surfaceless start leaves VK_OHOS_surface out for good. ArkUI creates
+	// the XComponent surface a moment after the page appears, so wait for it.
+	{
+		std::unique_lock lock(s_window_lock);
+		if (!s_window_cv.wait_for(lock, std::chrono::seconds(10),
+				[]() { return s_window != nullptr || s_shutdown_requested.load(std::memory_order_acquire); }))
+		{
+			Console.Warning("No surface after 10 seconds; starting without one.");
+		}
+	}
 
 	// Straight into Big Picture: it is this frontend's whole UI.
 	ImGuiManager::InitializeFullscreenUI();
@@ -283,7 +299,6 @@ bool OhosHost::Start(const std::string& files_dir, std::string* error)
 	s_files_dir = files_dir;
 	CrashHandler::Install();
 	Log::SetConsoleOutputLevel(LOGLEVEL_INFO);
-	Log::SetFileOutputLevel(LOGLEVEL_INFO, Path::Combine(files_dir, "emulog.txt"));
 
 	if (!InitializeConfig(files_dir, error))
 		return false;
@@ -304,6 +319,7 @@ void OhosHost::Stop()
 	if (VMManager::HasValidVM())
 		VMManager::SetState(VMState::Stopping);
 	s_cpu_queue_cv.notify_all();
+	s_window_cv.notify_all();
 	s_cpu_thread.join();
 }
 
@@ -330,6 +346,7 @@ void OhosHost::SetSurface(NativeWindow* window, uint32_t width, uint32_t height)
 			s_window_height = height;
 		}
 	}
+	s_window_cv.notify_all();
 
 	// The ring buffer is the CPU thread's to write, so the swap chain update hops there.
 	// With the surface gone, AcquireRenderWindow reports Surfaceless and the GS stops

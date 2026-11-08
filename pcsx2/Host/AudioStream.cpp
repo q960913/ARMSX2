@@ -325,7 +325,7 @@ std::unique_ptr<AudioStream> AudioStream::CreateStream(AudioBackend backend, u32
 			return CreateOboeAudioStream(sample_rate, parameters, stretch_enabled, error);
 #endif
 
-#ifdef __OHOS__
+#ifdef ARMSX2_USE_OHAUDIO
 		case AudioBackend::OHAudio:
 			return CreateOHAudioStream(sample_rate, parameters, stretch_enabled, error);
 #endif

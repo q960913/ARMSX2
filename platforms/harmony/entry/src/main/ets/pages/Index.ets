@@ -11,24 +11,23 @@ import { VirtualPad } from '../components/VirtualPad';
 // small toolbar for importing files, and physical controller keys.
 
 // Physical controller buttons -> DualShock 2.
-const KEY_MAP: Map<number, PadInput> = new Map<number, PadInput>([
-  [KeyCode.KEYCODE_BUTTON_A, PadInput.CROSS],
-  [KeyCode.KEYCODE_BUTTON_B, PadInput.CIRCLE],
-  [KeyCode.KEYCODE_BUTTON_X, PadInput.SQUARE],
-  [KeyCode.KEYCODE_BUTTON_Y, PadInput.TRIANGLE],
-  [KeyCode.KEYCODE_BUTTON_L1, PadInput.L1],
-  [KeyCode.KEYCODE_BUTTON_R1, PadInput.R1],
-  [KeyCode.KEYCODE_BUTTON_L2, PadInput.L2],
-  [KeyCode.KEYCODE_BUTTON_R2, PadInput.R2],
-  [KeyCode.KEYCODE_BUTTON_SELECT, PadInput.SELECT],
-  [KeyCode.KEYCODE_BUTTON_START, PadInput.START],
-  [KeyCode.KEYCODE_BUTTON_THUMBL, PadInput.L3],
-  [KeyCode.KEYCODE_BUTTON_THUMBR, PadInput.R3],
-  [KeyCode.KEYCODE_DPAD_UP, PadInput.UP],
-  [KeyCode.KEYCODE_DPAD_DOWN, PadInput.DOWN],
-  [KeyCode.KEYCODE_DPAD_LEFT, PadInput.LEFT],
-  [KeyCode.KEYCODE_DPAD_RIGHT, PadInput.RIGHT],
-]);
+const KEY_MAP: Map<number, PadInput> = new Map<number, PadInput>();
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_A, PadInput.CROSS);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_B, PadInput.CIRCLE);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_X, PadInput.SQUARE);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_Y, PadInput.TRIANGLE);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_L1, PadInput.L1);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_R1, PadInput.R1);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_L2, PadInput.L2);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_R2, PadInput.R2);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_SELECT, PadInput.SELECT);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_START, PadInput.START);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_THUMBL, PadInput.L3);
+KEY_MAP.set(KeyCode.KEYCODE_BUTTON_THUMBR, PadInput.R3);
+KEY_MAP.set(KeyCode.KEYCODE_DPAD_UP, PadInput.UP);
+KEY_MAP.set(KeyCode.KEYCODE_DPAD_DOWN, PadInput.DOWN);
+KEY_MAP.set(KeyCode.KEYCODE_DPAD_LEFT, PadInput.LEFT);
+KEY_MAP.set(KeyCode.KEYCODE_DPAD_RIGHT, PadInput.RIGHT);
 
 async function importFiles(context: common.UIAbilityContext, destDir: string): Promise<number> {
   const documentPicker = new picker.DocumentViewPicker(context);
@@ -106,7 +105,9 @@ struct Index {
       }
 
       Row({ space: 8 }) {
-        this.ToolbarButton('Menu', () => armsx2.openPauseMenu())
+        this.ToolbarButton('Menu', () => {
+          armsx2.openPauseMenu();
+        })
         this.ToolbarButton(this.showPad ? 'Hide pad' : 'Show pad', () => {
           this.showPad = !this.showPad;
         })

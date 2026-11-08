@@ -8,16 +8,16 @@ import { PadInput } from './PadInput';
 struct PadButton {
   label: string = '';
   input: PadInput = PadInput.CROSS;
-  size: number = 56;
+  diameter: number = 56;
   @State pressed: boolean = false;
 
   build() {
     Text(this.label)
-      .width(this.size)
-      .height(this.size)
-      .borderRadius(this.size / 2)
+      .width(this.diameter)
+      .height(this.diameter)
+      .borderRadius(this.diameter / 2)
       .textAlign(TextAlign.Center)
-      .fontSize(this.size * 0.4)
+      .fontSize(this.diameter * 0.4)
       .fontColor(Color.White)
       .backgroundColor(this.pressed ? '#AAFFFFFF' : '#44FFFFFF')
       .onTouch((event: TouchEvent) => {
@@ -124,13 +124,13 @@ export struct VirtualPad {
       Column({ space: 16 }) {
         Grid() {
           GridItem() {}
-          GridItem() { PadButton({ label: '▲', input: PadInput.UP, size: 48 }) }
+          GridItem() { PadButton({ label: '▲', input: PadInput.UP, diameter: 48 }) }
           GridItem() {}
-          GridItem() { PadButton({ label: '◀', input: PadInput.LEFT, size: 48 }) }
+          GridItem() { PadButton({ label: '◀', input: PadInput.LEFT, diameter: 48 }) }
           GridItem() {}
-          GridItem() { PadButton({ label: '▶', input: PadInput.RIGHT, size: 48 }) }
+          GridItem() { PadButton({ label: '▶', input: PadInput.RIGHT, diameter: 48 }) }
           GridItem() {}
-          GridItem() { PadButton({ label: '▼', input: PadInput.DOWN, size: 48 }) }
+          GridItem() { PadButton({ label: '▼', input: PadInput.DOWN, diameter: 48 }) }
           GridItem() {}
         }
         .columnsTemplate('1fr 1fr 1fr')

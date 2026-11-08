@@ -27,9 +27,9 @@ if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
 	message(FATAL_ERROR "ARMSX2 for HarmonyOS is arm64-v8a only (OHOS_ARCH=arm64-v8a).")
 endif()
 
-get_filename_component(ARMSX2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../.." ABSOLUTE)
+get_filename_component(ARMSX2_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../../.." ABSOLUTE)
 set(ARMSX2_VENDOR_DIR "${ARMSX2_ROOT}/platforms/android/app/src/main/cpp/3rdparty")
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
@@ -71,7 +71,7 @@ write_svnrev_h()
 # experimental switch, and lacks a few C++20 helpers the core uses; the compat
 # header supplies those. Core only: set after the third-party libraries above.
 add_compile_definitions($<$<COMPILE_LANGUAGE:CXX>:_LIBCPP_ENABLE_EXPERIMENTAL>)
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_SOURCE_DIR}/ohos_libcxx_compat.h>")
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_LIST_DIR}/ohos_libcxx_compat.h>")
 
 add_subdirectory("${ARMSX2_ROOT}/common" "${CMAKE_BINARY_DIR}/common")
 add_subdirectory("${ARMSX2_ROOT}/3rdparty/libretro" "${CMAKE_BINARY_DIR}/3rdparty/libretro")
@@ -84,9 +84,9 @@ target_compile_definitions(PCSX2_FLAGS INTERFACE ARMSX2_LINK_SHADERC)
 
 # The NAPI module. ArkTS imports it as 'libarmsx2.so'.
 add_library(armsx2 SHARED
-	ohos_main.cpp
-	ohos_host.cpp
-	ohos_resources.cpp
+	"${CMAKE_CURRENT_LIST_DIR}/ohos_main.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/ohos_host.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/ohos_resources.cpp"
 )
 
 target_include_directories(armsx2 PRIVATE
@@ -94,7 +94,7 @@ target_include_directories(armsx2 PRIVATE
 	"${ARMSX2_ROOT}/pcsx2"
 	"${ARMSX2_ROOT}/3rdparty/include"
 	"${CMAKE_BINARY_DIR}/common/include"
-	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_LIST_DIR}"
 )
 
 target_link_libraries(armsx2 PRIVATE

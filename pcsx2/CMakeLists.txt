@@ -1582,10 +1582,16 @@ if(OHOS)
 	list(APPEND pcsx2Sources
 		Android/AndroidStubs.cpp
 		Android/AndroidPcapStubs.cpp)
-	# OHAudio output (AudioBackend::OHAudio), the platform's native audio API.
-	list(APPEND pcsx2HostSources
-		Host/OHAudioStream.cpp)
-	target_link_libraries(PCSX2_FLAGS INTERFACE ohaudio)
+	# OHAudio output (AudioBackend::OHAudio), the platform's native audio API. Behind a
+	# switch like Oboe: on by default, off for builds that cannot link system
+	# libraries (the static recompiler-test build that runs under qemu).
+	option(ARMSX2_USE_OHAUDIO "Build the OHAudio output backend" ON)
+	if(ARMSX2_USE_OHAUDIO)
+		list(APPEND pcsx2HostSources
+			Host/OHAudioStream.cpp)
+		target_link_libraries(PCSX2_FLAGS INTERFACE ohaudio)
+		target_compile_definitions(PCSX2_FLAGS INTERFACE ARMSX2_USE_OHAUDIO)
+	endif()
 endif()
 
 if(ARMSX2_IOS)

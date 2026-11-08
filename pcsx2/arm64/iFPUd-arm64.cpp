@@ -451,7 +451,7 @@ static EeFpuModelCallee islandCallee(int kind)
 
 struct IslandFrame
 {
-	u8 gprs[8];
+	u8 gprs[16];
 	u8 fprs[NUM_ARM_NEON_REGS];
 	u32 ngpr, nfpr, frame;
 };
@@ -469,10 +469,18 @@ static void emitIslandEnter(IslandFrame& f, int vecEnd)
 	for (int i = 0; i < NUM_ARM_GPR_REGS; i++)
 	{
 		// Leaves x4-x7, and x14/x15 as well when the convention is plain AAPCS.
-		// x0-x3 and x8-x10 are scratch, x11-x13 are pins handled below, x16+ are
-		// reserved or callee-saved.
-		if (i <= 3 || (i >= 8 && i <= 13) || i >= 16 || i > EeFpuModelFrame::kGprEnd)
+		// x0-x3 and x8-x10 are scratch, x16+ are reserved or callee-saved.
+		if (i <= 3 || (i >= 8 && i <= 10) || i >= 16 || i > EeFpuModelFrame::kGprEnd)
 			continue;
+		// x11-x13 hold the EE pins. The attribute spares them; a plain AAPCS
+		// callee may not, so then they go in the frame too, used or not (the
+		// allocator does not track the pins).
+		if (i >= 11 && i <= 13)
+		{
+			if (!EEFPU_MODEL_CALL_SPARES_MOST)
+				f.gprs[f.ngpr++] = static_cast<u8>(i);
+			continue;
+		}
 		if (arm64gprs[i].inuse)
 			f.gprs[f.ngpr++] = static_cast<u8>(i);
 	}
@@ -492,7 +500,8 @@ static void emitIslandEnter(IslandFrame& f, int vecEnd)
 		armAsm->Str(a64::XRegister(f.gprs[i]), a64::MemOperand(a64::sp, off));
 	for (u32 i = 0; i < f.nfpr; i++, off += 16)
 		armAsm->Str(a64::QRegister(f.fprs[i]), a64::MemOperand(a64::sp, off));
-	// The pins sit in x11-x13, which the callee spares, so both helpers emit
+	// The pins sit in x11-x13, which the callee spares (or, under plain AAPCS, the
+	// frame above holds), so both helpers emit
 	// nothing here; their predicate is preserve_most's x9-x15, the conservative
 	// half of what EEFPU_MODEL_CALL spares. A pin homed outside it would need
 	// the flush before the reload, the mirrors being lazily dirty.
